@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchMate AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 700px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1F4E79;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #1F4E79;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        button {
+            background: #1F4E79;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #163a5c;
+        }
+
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: green;
+        }
+
+        .question-section {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"]:focus {
+            border-color: #1F4E79;
+            outline: none;
+        }
+
+        .answer-box {
+            background: #f0f7ff;
+            border-left: 4px solid #1F4E79;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .answer-box h3 {
+            color: #1F4E79;
+            margin-bottom: 10px;
+        }
+
+        .answer-box p {
+            color: #333;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 ResearchMate AI</h1>
+        <p class="subtitle">Upload a research paper and ask questions about it!</p>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3>📄 Upload Research Paper (PDF)</h3>
+            <input type="file" id="pdfFile" accept=".pdf">
+            <button onclick="uploadPDF()">Upload & Process PDF</button>
+            <p class="status" id="uploadStatus"></p>
+        </div>
+
+        <!-- Question Section -->
+        <div class="question-section">
+            <input type="text" id="question" placeholder="Ask a question about the paper...">
+            <button onclick="askQuestion()">Ask Question 🚀</button>
+        </div>
+
+        <!-- Answer Box -->
+        <div class="answer-box" id="answerBox">
+            <h3>💡 Answer:</h3>
+            <p id="answerText"></p>
+        </div>
+    </div>
+
+    <script>
+        async function uploadPDF() {
+            const fileInput = document.getElementById('pdfFile');
+            const status = document.getElementById('uploadStatus');
+
+            if (!fileInput.files[0]) {
+                status.style.color = 'red';
+                status.textContent = 'Please select a PDF file!';
+                return;
+            }
+
+            status.style.color = 'blue';
+            status.textContent = 'Processing PDF... please wait ⏳';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                status.style.color = 'green';
+                status.textContent = '✅ PDF processed successfully!';
+            } else {
+                status.style.color = 'red';
+                status.textContent = '❌ ' + data.error;
+            }
+        }
+
+        async function askQuestion() {
+            const question = document.getElementById('question').value;
+            const answerBox = document.getElementById('answerBox');
+            const answerText = document.getElementById('answerText');
+
+            if (!question) {
+                alert('Please enter a question!');
+                return;
+            }
+
+            answerText.textContent = 'Thinking... ⏳';
+            answerBox.style.display = 'block';
+
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                answerText.textContent = data.answer;
+            } else {
+                answerText.textContent = '❌ ' + data.error;
+            }
+        }
+    </script>
+</body>
+</html>
